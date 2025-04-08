@@ -105,4 +105,53 @@ class ApiService {
       throw Exception('Error fetching proprietaires: $e');
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getAvailableApartments() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/appartements'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final apartments = (data['appartements'] as List)
+              .where((apt) => apt['proprietaireId'] == null)
+              .map((apt) => Map<String, dynamic>.from(apt))
+              .toList();
+          return apartments;
+        }
+      }
+      throw Exception('Failed to fetch apartments');
+    } catch (e) {
+      throw Exception('Error fetching apartments: $e');
+    }
+  }
+
+  static Future<void> createProprietaire(Map<String, dynamic> proprietaireData) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/proprietaires'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode(proprietaireData),
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception('Failed to create proprietaire: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error creating proprietaire: $e');
+    }
+  }
 }

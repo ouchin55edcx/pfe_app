@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/proprietaire.dart';
 import '../services/api_service.dart';
+import './AddProprietairePage.dart';
 
 class OwnersListPage extends StatefulWidget {
   @override
@@ -92,8 +93,14 @@ class _OwnersListPageState extends State<OwnersListPage> {
                   ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to add proprietaire page
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddProprietairePage()),
+          );
+          if (result == true) {
+            _fetchProprietaires(); // Refresh the list
+          }
         },
         child: Icon(Icons.add),
         backgroundColor: const Color.fromARGB(255, 64, 66, 69),
