@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../models/proprietaire.dart';
+import '../services/storage_service.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:3000/api';
@@ -10,7 +10,7 @@ class ApiService {
   static Map<String, String> _createAuthHeaders(String token) {
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token', // Adding Bearer prefix
+      'Authorization': 'Bearer $token',
     };
   }
 
@@ -26,7 +26,12 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      // Store the token immediately after successful login
+      if (data['success'] == true && data['token'] != null) {
+        await StorageService.saveToken(data['token']);
+      }
+      return data;
     } else {
       throw Exception('Failed to login: ${response.body}');
     }
@@ -44,7 +49,12 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      // Store the token immediately after successful login
+      if (data['success'] == true && data['token'] != null) {
+        await StorageService.saveToken(data['token']);
+      }
+      return data;
     } else {
       throw Exception('Failed to login: ${response.body}');
     }
@@ -52,25 +62,47 @@ class ApiService {
 
   // Get dashboard statistics
   static Future<Map<String, dynamic>> getDashboardStats() async {
-    final token = AuthService.to.token;
-    print('Using token for dashboard stats: $token'); // Debug log
-
-    if (token.isEmpty) {
+    final token = await StorageService.getToken();
+    
+    if (token == null) {
       throw Exception('No authentication token found');
     }
 
-    final headers = _createAuthHeaders(token);
-    print('Request headers: $headers'); // Debug log
-
     final response = await http.get(
       Uri.parse('$baseUrl/statistics/dashboard'),
-      headers: headers,
+      headers: _createAuthHeaders(token),
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
       throw Exception('Failed to get dashboard statistics: ${response.body}');
+    }
+  }
+
+  static Future<List<Proprietaire>> getAllProprietaires() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/proprietaires'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          return (data['proprietaires'] as List)
+              .map((json) => Proprietaire.fromJson(json))
+              .toList();
+        }
+      }
+      throw Exception('Failed to fetch proprietaires');
+    } catch (e) {
+      throw Exception('Error fetching proprietaires: $e');
     }
   }
 }

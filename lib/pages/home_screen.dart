@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_bottom_navbar.dart';
 import 'dashboard_page.dart';
 import 'schedule_meeting_page.dart';
-import 'messages_page.dart';
-import 'OwnersListPage.dart'; // Import de la page des propriétaires
+import 'OwnersListPage.dart';
 import 'settings_page.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,16 +15,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _pages = [
     DashboardPage(),
-    MessagesPage(),
+    OwnersListPage(),
     ScheduleMeetingPage(),
-    OwnersListPage(), // Ajout ici à la bonne position
     SettingsPage(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages[_currentIndex], // Affichage de la page sélectionnée
+      body: _pages[_currentIndex],
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),

@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'Owner.dart';
-import 'OwnerFormPage.dart';
-import 'notifications_page.dart';
-import '../widgets/NotificationBell.dart';
-import '../widgets/user_avatar.dart';
-import 'UserProfilePage.dart';
-import 'OwnerDetailPage.dart';
+import '../models/proprietaire.dart';
+import '../services/api_service.dart';
 
 class OwnersListPage extends StatefulWidget {
   @override
@@ -13,192 +8,95 @@ class OwnersListPage extends StatefulWidget {
 }
 
 class _OwnersListPageState extends State<OwnersListPage> {
-  List<Owner> owners = [];
-  List<Owner> filteredOwners = [];
-  TextEditingController searchController = TextEditingController();
+  bool _isLoading = true;
+  String _errorMessage = '';
+  List<Proprietaire> _proprietaires = [];
 
   @override
   void initState() {
     super.initState();
-    filteredOwners = owners;
-    searchController.addListener(_filterOwners);
+    _fetchProprietaires();
   }
 
-  void _filterOwners() {
-    setState(() {
-      filteredOwners = owners
-          .where((owner) => owner.name.toLowerCase().contains(searchController.text.toLowerCase()))
-          .toList();
-    });
-  }
+  Future<void> _fetchProprietaires() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
 
-  void _addOrUpdateOwner(Owner owner) {
-    setState(() {
-      int index = owners.indexWhere((o) => o.id == owner.id);
-      if (index >= 0) {
-        owners[index] = owner;
-      } else {
-        owners.add(owner);
-      }
-      _filterOwners();
-    });
-  }
-
-  void _editOwner(Owner owner) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OwnerFormPage(
-          owner: owner,
-          onSave: _addOrUpdateOwner,
-        ),
-      ),
-    );
-  }
-
-  void _deleteOwner(Owner owner) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Confirmer la suppression"),
-          content: Text("Voulez-vous vraiment supprimer ${owner.name} ?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Annuler"),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  owners.removeWhere((o) => o.id == owner.id);
-                  _filterOwners();
-                });
-                Navigator.pop(context);
-              },
-              child: Text("Supprimer", style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _addOwner() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OwnerFormPage(
-          onSave: _addOrUpdateOwner,
-        ),
-      ),
-    );
+      final proprietaires = await ApiService.getAllProprietaires();
+      setState(() {
+        _proprietaires = proprietaires;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 64, 66, 69),
-        elevation: 0,
-        title: Row(
-          children: [
-            Text(
-              "Liste Des Propriétaires",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            Spacer(),
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => NotificationsPage()),
-              ),
-              child: NotificationBell(),
-            ),
-            GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => UserProfilePage()),
-              ),
-              child: UserAvatar(),
-            ),
-          ],
+        title: Text(
+          'Liste des Propriétaires',
+          style: TextStyle(color: Colors.white),
         ),
+        backgroundColor: const Color.fromARGB(255, 64, 66, 69),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.all(8.0),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                labelText: "Rechercher un propriétaire",
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: filteredOwners.isEmpty
+      body: RefreshIndicator(
+        onRefresh: _fetchProprietaires,
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : _errorMessage.isNotEmpty
                 ? Center(
                     child: Text(
-                      "Aucun propriétaire trouvé.",
-                      style: TextStyle(fontSize: 18, color: Colors.black54),
+                      _errorMessage,
+                      style: TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
                     ),
                   )
                 : ListView.builder(
-                    itemCount: filteredOwners.length,
+                    itemCount: _proprietaires.length,
                     itemBuilder: (context, index) {
-                      final owner = filteredOwners[index];
+                      final proprietaire = _proprietaires[index];
                       return Card(
-                        color: Colors.blue.withOpacity(0.6),
-                        margin: EdgeInsets.all(8.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: ListTile(
-                                                      onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OwnerDetailPage(owner: owner),
-                                ),
-                              );
-                            },
-                          title: Text(
-                            owner.name,
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          leading: CircleAvatar(
+                            child: Text(
+                              proprietaire.firstName[0].toUpperCase(),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.blue,
                           ),
-                          subtitle: Text(
-                            "Immeuble ${owner.numImm}, Appartement ${owner.numApp}\nMontant à payer: ${owner.amount.toStringAsFixed(2)} MAD",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
+                          title: Text('${proprietaire.firstName} ${proprietaire.lastName}'),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              IconButton(
-                                icon: Icon(Icons.edit, color: Colors.white),
-                                onPressed: () => _editOwner(owner),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.delete, color: Colors.red),
-                                onPressed: () => _deleteOwner(owner),
-                              ),
+                              Text('Email: ${proprietaire.email}'),
+                              Text('Appartement: ${proprietaire.apartmentNumber}'),
                             ],
                           ),
+                          trailing: Icon(Icons.chevron_right),
+                          onTap: () {
+                            // TODO: Navigate to proprietaire details page
+                          },
                         ),
                       );
                     },
                   ),
-          ),
-        ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _addOwner,
-        backgroundColor: const Color.fromARGB(255, 75, 160, 173),
-        child: Icon(Icons.add,color: Colors.white,),
+        onPressed: () {
+          // TODO: Navigate to add proprietaire page
+        },
+        child: Icon(Icons.add),
+        backgroundColor: const Color.fromARGB(255, 64, 66, 69),
       ),
     );
   }
