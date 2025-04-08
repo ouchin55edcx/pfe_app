@@ -37,6 +37,7 @@ dependencies:
   fl_chart: ^0.70.2
 
   table_calendar: ^3.2.0
+  intl: ^0.17.0 
 
   get: ^4.7.2
   flutter_blur: ^0.0.2

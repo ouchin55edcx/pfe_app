@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/proprietaire.dart';
+import '../models/reunion.dart';
 import '../services/storage_service.dart';
 
 class ApiService {
@@ -199,6 +200,59 @@ class ApiService {
       throw Exception('Failed to update proprietaire');
     } catch (e) {
       throw Exception('Error updating proprietaire: $e');
+    }
+  }
+
+  static Future<List<Reunion>> getMyReunions() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reunions'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return (data['reunions'] as List)
+              .map((reunion) => Reunion.fromJson(reunion))
+              .toList();
+        }
+        throw Exception(data['message'] ?? 'Failed to fetch reunions');
+      }
+      throw Exception('Failed to fetch reunions');
+    } catch (e) {
+      throw Exception('Error fetching reunions: $e');
+    }
+  }
+
+  static Future<Reunion> createReunion(Map<String, dynamic> reunionData) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reunions'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode(reunionData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return Reunion.fromJson(data['reunion']);
+        }
+        throw Exception(data['message'] ?? 'Failed to create reunion');
+      }
+      throw Exception('Failed to create reunion');
+    } catch (e) {
+      throw Exception('Error creating reunion: $e');
     }
   }
 }
