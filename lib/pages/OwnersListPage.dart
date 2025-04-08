@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/proprietaire.dart';
 import '../services/api_service.dart';
 import './AddProprietairePage.dart';
+import './EditProprietairePage.dart';
 
 class OwnersListPage extends StatefulWidget {
   @override
@@ -91,6 +92,25 @@ class _OwnersListPageState extends State<OwnersListPage> {
     }
   }
 
+  Future<void> _editProprietaire(Proprietaire proprietaire) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProprietairePage(proprietaire: proprietaire),
+      ),
+    );
+
+    if (result != null && result is Proprietaire) {
+      await _fetchProprietaires(); // Refresh the list
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Proprietaire updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -138,9 +158,7 @@ class _OwnersListPageState extends State<OwnersListPage> {
                             children: [
                               IconButton(
                                 icon: Icon(Icons.edit, color: Colors.blue),
-                                onPressed: () {
-                                  // TODO: Implement edit functionality
-                                },
+                                onPressed: () => _editProprietaire(proprietaire),
                               ),
                               IconButton(
                                 icon: Icon(Icons.delete, color: Colors.red),

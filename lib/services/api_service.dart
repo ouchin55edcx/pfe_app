@@ -175,4 +175,30 @@ class ApiService {
       throw Exception('Error deleting proprietaire: $e');
     }
   }
+
+  static Future<Proprietaire> updateProprietaire(String proprietaireId, Map<String, dynamic> updateData) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/proprietaires/$proprietaireId'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return Proprietaire.fromJson(data['proprietaire']);
+        }
+        throw Exception(data['message'] ?? 'Failed to update proprietaire');
+      }
+      throw Exception('Failed to update proprietaire');
+    } catch (e) {
+      throw Exception('Error updating proprietaire: $e');
+    }
+  }
 }
