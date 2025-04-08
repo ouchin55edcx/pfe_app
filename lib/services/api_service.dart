@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/proprietaire.dart';
 import '../models/reunion.dart';
 import '../services/storage_service.dart';
+import '../models/invited_proprietaire.dart';
 
 class ApiService {
   static const String baseUrl = 'http://localhost:3000/api';
@@ -94,12 +95,13 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = jsonDecode(response.body);
         if (data['success'] == true) {
           return (data['proprietaires'] as List)
-              .map((json) => Proprietaire.fromJson(json))
+              .map((prop) => Proprietaire.fromJson(prop))
               .toList();
         }
+        throw Exception(data['message'] ?? 'Failed to fetch proprietaires');
       }
       throw Exception('Failed to fetch proprietaires');
     } catch (e) {
@@ -253,6 +255,57 @@ class ApiService {
       throw Exception('Failed to create reunion');
     } catch (e) {
       throw Exception('Error creating reunion: $e');
+    }
+  }
+
+  static Future<void> inviteToReunion(String reunionId, List<String> proprietaireIds) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/reunions/$reunionId/invite'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode({
+          'proprietaireIds': proprietaireIds,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to invite proprietaires');
+      }
+    } catch (e) {
+      throw Exception('Error inviting proprietaires: $e');
+    }
+  }
+
+  static Future<List<InvitedProprietaire>> getReunionInvitees(String reunionId) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/reunions/$reunionId/invited'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return (data['invitedProprietaires'] as List)
+              .map((prop) => InvitedProprietaire.fromJson(prop))
+              .toList();
+        }
+        throw Exception(data['message'] ?? 'Failed to fetch invited proprietaires');
+      }
+      throw Exception('Failed to fetch invited proprietaires');
+    } catch (e) {
+      throw Exception('Error fetching invited proprietaires: $e');
     }
   }
 }

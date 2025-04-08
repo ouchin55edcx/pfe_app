@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
-
+import 'InviteProprietairesPage.dart';
+import '../models/reunion.dart';
 class AddReunionPage extends StatefulWidget {
   @override
   _AddReunionPageState createState() => _AddReunionPageState();
@@ -75,7 +76,16 @@ class _AddReunionPageState extends State<AddReunionPage> {
         'location': _locationController.text,
       };
 
-      await ApiService.createReunion(reunionData);
+      final Reunion newReunion = await ApiService.createReunion(reunionData);
+      
+      // Navigate to invite page
+      final inviteResult = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => InviteProprietairesPage(reunionId: newReunion.id),
+        ),
+      );
+
       Navigator.pop(context, true);
     } catch (e) {
       setState(() => _isLoading = false);

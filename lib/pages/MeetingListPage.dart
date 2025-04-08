@@ -7,6 +7,10 @@ import '../widgets/user_avatar.dart';
 import 'notifications_page.dart';
 import 'package:intl/intl.dart';
 import 'AddReunionPage.dart';
+
+
+import 'ReunionDetailsPage.dart';
+import 'InviteProprietairesPage.dart';
 class MeetingListPage extends StatefulWidget {
   const MeetingListPage({super.key});
 
@@ -192,21 +196,39 @@ class _MeetingListPageState extends State<MeetingListPage> {
                                     reunion.description,
                                     style: TextStyle(color: Colors.grey[600]),
                                   ),
-                                  SizedBox(height: 12),
+                                  SizedBox(height: 16),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                     children: [
-                                      IconButton(
-                                        icon: Icon(Icons.edit, color: Colors.blue),
+                                      ElevatedButton.icon(
                                         onPressed: () {
-                                          // TODO: Implement edit functionality
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ReunionDetailsPage(reunion: reunion),
+                                            ),
+                                          );
                                         },
+                                        icon: Icon(Icons.visibility),
+                                        label: Text('Voir détails'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color.fromARGB(255, 64, 66, 69),
+                                        ),
                                       ),
-                                      IconButton(
-                                        icon: Icon(Icons.delete, color: Colors.red),
+                                      ElevatedButton.icon(
                                         onPressed: () {
-                                          // TODO: Implement delete functionality
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => InviteProprietairesPage(reunionId: reunion.id),
+                                            ),
+                                          );
                                         },
+                                        icon: Icon(Icons.person_add),
+                                        label: Text('Inviter'),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: const Color.fromARGB(255, 75, 160, 173),
+                                        ),
                                       ),
                                     ],
                                   ),
