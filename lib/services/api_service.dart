@@ -154,4 +154,25 @@ class ApiService {
       throw Exception('Error creating proprietaire: $e');
     }
   }
+
+  static Future<void> deleteProprietaire(String proprietaireId) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/proprietaires/$proprietaireId'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to delete proprietaire');
+      }
+    } catch (e) {
+      throw Exception('Error deleting proprietaire: $e');
+    }
+  }
 }

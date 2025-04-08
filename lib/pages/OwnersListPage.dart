@@ -39,6 +39,58 @@ class _OwnersListPageState extends State<OwnersListPage> {
     }
   }
 
+  Future<void> _deleteProprietaire(String proprietaireId) async {
+    try {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Confirm Deletion'),
+            content: Text('Are you sure you want to delete this proprietaire?'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Cancel'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              TextButton(
+                child: Text('Delete', style: TextStyle(color: Colors.red)),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  setState(() => _isLoading = true);
+                  try {
+                    await ApiService.deleteProprietaire(proprietaireId);
+                    await _fetchProprietaires(); // Refresh the list
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Proprietaire deleted successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(e.toString()),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    setState(() => _isLoading = false);
+                  }
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,13 +106,7 @@ class _OwnersListPageState extends State<OwnersListPage> {
         child: _isLoading
             ? Center(child: CircularProgressIndicator())
             : _errorMessage.isNotEmpty
-                ? Center(
-                    child: Text(
-                      _errorMessage,
-                      style: TextStyle(color: Colors.red),
-                      textAlign: TextAlign.center,
-                    ),
-                  )
+                ? Center(child: Text(_errorMessage))
                 : ListView.builder(
                     itemCount: _proprietaires.length,
                     itemBuilder: (context, index) {
@@ -69,21 +115,39 @@ class _OwnersListPageState extends State<OwnersListPage> {
                         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: ListTile(
                           leading: CircleAvatar(
+                            backgroundColor: Colors.blue,
                             child: Text(
                               proprietaire.firstName[0].toUpperCase(),
                               style: TextStyle(color: Colors.white),
                             ),
-                            backgroundColor: Colors.blue,
                           ),
-                          title: Text('${proprietaire.firstName} ${proprietaire.lastName}'),
+                          title: Text(
+                            '${proprietaire.firstName} ${proprietaire.lastName}',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text('Email: ${proprietaire.email}'),
-                              Text('Appartement: ${proprietaire.apartmentNumber}'),
+                              Text('Phone: ${proprietaire.phoneNumber}'),
+                              Text('Apartment: ${proprietaire.apartmentNumber}'),
                             ],
                           ),
-                          trailing: Icon(Icons.chevron_right),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit, color: Colors.blue),
+                                onPressed: () {
+                                  // TODO: Implement edit functionality
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteProprietaire(proprietaire.id),
+                              ),
+                            ],
+                          ),
                           onTap: () {
                             // TODO: Navigate to proprietaire details page
                           },
