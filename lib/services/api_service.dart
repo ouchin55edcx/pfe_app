@@ -16,6 +16,30 @@ class ApiService {
     };
   }
 
+  static Future<Map<String, dynamic>> get(String endpoint) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.get(
+        Uri.parse('$baseUrl$endpoint'),
+        headers: _createAuthHeaders(token),
+      );
+
+      final data = jsonDecode(response.body);
+      
+      if (response.statusCode != 200) {
+        throw Exception(data['message'] ?? 'Request failed');
+      }
+
+      return data;
+    } catch (e) {
+      throw Exception('Error making GET request: $e');
+    }
+  }
+
   // Login as Syndic
   static Future<Map<String, dynamic>> loginAsSyndic(String email, String password) async {
     final response = await http.post(

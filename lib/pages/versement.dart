@@ -1,4 +1,44 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
+import 'package:intl/intl.dart';
+
+class Charge {
+  final String id;
+  final String titre;
+  final String description;
+  final double montant;
+  final String dateEcheance;
+  final String statut;
+  final String categorie;
+  final double montantPaye;
+  final double montantRestant;
+
+  Charge({
+    required this.id,
+    required this.titre,
+    required this.description,
+    required this.montant,
+    required this.dateEcheance,
+    required this.statut,
+    required this.categorie,
+    required this.montantPaye,
+    required this.montantRestant,
+  });
+
+  factory Charge.fromJson(Map<String, dynamic> json) {
+    return Charge(
+      id: json['id'],
+      titre: json['titre'],
+      description: json['description'],
+      montant: json['montant'].toDouble(),
+      dateEcheance: json['dateEcheance'],
+      statut: json['statut'],
+      categorie: json['categorie'],
+      montantPaye: json['montantPaye'].toDouble(),
+      montantRestant: json['montantRestant'].toDouble(),
+    );
+  }
+}
 
 class VersementScreen extends StatefulWidget {
   @override
@@ -8,25 +48,52 @@ class VersementScreen extends StatefulWidget {
 class _VersementScreenState extends State<VersementScreen> {
   String selectedImm = "8";
   String selectedAppt = "8";
-  List<Map<String, String>> versements = [];
+  List<Charge> charges = [];
+  bool isLoading = true;
+  String errorMessage = '';
 
-  void _ajouterVersement() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AjouterVersementScreen(onAjout: (versement) {
-          setState(() {
-            versements.add(versement);
-          });
-        }),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchCharges();
   }
 
-  void _supprimerVersement(int index) {
-    setState(() {
-      versements.removeAt(index);
-    });
+  Future<void> _fetchCharges() async {
+    try {
+      setState(() => isLoading = true);
+      final response = await ApiService.get('/charges');
+      
+      if (response['success'] == true) {
+        final chargesList = (response['charges'] as List)
+            .map((charge) => Charge.fromJson(charge))
+            .toList();
+        setState(() {
+          charges = chargesList;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          errorMessage = 'Failed to load charges';
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'payé':
+        return Colors.green;
+      case 'non payé':
+        return Colors.red;
+      default:
+        return Colors.orange;
+    }
   }
 
   @override
@@ -63,37 +130,71 @@ class _VersementScreenState extends State<VersementScreen> {
             ),
             SizedBox(height: 20),
             Expanded(
-              child: versements.isEmpty
-                  ? Center(child: Text("Aucun versement enregistré."))
-                  : ListView.builder(
-                      itemCount: versements.length,
-                      itemBuilder: (context, index) {
-                        final v = versements[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text("${v['date']} - ${v['montant']} DH"),
-                            subtitle: Text("Mode: ${v['mode']} | Réf: ${v['ref']}"),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit, color: Colors.blue),
-                                  onPressed: () {},
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _supprimerVersement(index),
-                                ),
-                              ],
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : errorMessage.isNotEmpty
+                      ? Center(child: Text(errorMessage))
+                      : charges.isEmpty
+                          ? Center(child: Text("Aucune charge trouvée"))
+                          : ListView.builder(
+                              itemCount: charges.length,
+                              itemBuilder: (context, index) {
+                                final charge = charges[index];
+                                return Card(
+                                  elevation: 3,
+                                  margin: EdgeInsets.symmetric(vertical: 8),
+                                  child: ListTile(
+                                    title: Text(
+                                      charge.titre,
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(charge.description),
+                                        Text(
+                                          "Échéance: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(charge.dateEcheance))}",
+                                          style: TextStyle(color: Colors.grey[600]),
+                                        ),
+                                        Text(
+                                          "Montant: ${charge.montant} DH | Restant: ${charge.montantRestant} DH",
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                      ],
+                                    ),
+                                    trailing: Container(
+                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: _getStatusColor(charge.statut),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        charge.statut,
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
-                          ),
-                        );
-                      },
-                    ),
             ),
             ElevatedButton(
-              onPressed: _ajouterVersement,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AjouterVersementScreen(
+                      onAjout: (versement) {
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                foregroundColor: Colors.white,
+              ),
               child: Text("Effectuer un versement"),
             ),
           ],

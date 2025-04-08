@@ -13,7 +13,7 @@ class GestionSyndicScreen extends StatefulWidget {
 }
 
 class _GestionSyndicScreenState extends State<GestionSyndicScreen> {
-  String? selectedImmeuble = '8';
+  String? selectedImmeuble = '0';
   String? selectedAppartement = '8';
 
   @override
@@ -68,7 +68,7 @@ class _GestionSyndicScreenState extends State<GestionSyndicScreen> {
                   child: DropdownButtonFormField<String>(
                     value: selectedImmeuble,
                     items:
-                        ["8", "9", "10"]
+                        ["0", "9", "10"]
                             .map(
                               (e) => DropdownMenuItem(
                                 value: e,
