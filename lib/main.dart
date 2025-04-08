@@ -8,7 +8,6 @@ import 'pages/schedule_meeting_page.dart';
 import 'services/auth_service.dart';
 
 void main() {
-  // Initialize Get services
   Get.put(AuthService());
 
   runApp(GestionSyndicApp());

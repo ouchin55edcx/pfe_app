@@ -29,6 +29,9 @@ class AuthService extends GetxController {
     final role = await StorageService.getUserRole();
     final userData = await StorageService.getUserData();
 
+    print('Loaded token from storage: $token'); // Debug log
+    print('Loaded role from storage: $role'); // Debug log
+
     if (token != null && role != null && userData != null) {
       _token.value = token;
       _userRole.value = role;
@@ -39,6 +42,10 @@ class AuthService extends GetxController {
       } else if (role == 'proprietaire') {
         _currentUser.value = ProprietaireUser.fromJson(userMap);
       }
+
+      print('User authenticated as $role with token: $_token'); // Debug log
+    } else {
+      print('No stored authentication data found'); // Debug log
     }
   }
 
@@ -49,15 +56,18 @@ class AuthService extends GetxController {
 
       if (response['success'] == true) {
         final userData = response['user'];
+        final token = response['token']; // This will be in format "xxxxx:syndic"
+        
         _currentUser.value = SyndicUser.fromJson(userData);
-        _token.value = response['token'];
+        _token.value = token;
         _userRole.value = 'syndic';
 
         // Save to storage
-        await StorageService.saveToken(response['token']);
+        await StorageService.saveToken(token);
         await StorageService.saveUserRole('syndic');
         await StorageService.saveUserData(jsonEncode(userData));
 
+        print('Syndic token saved: $token'); // Debug log
         return true;
       }
       return false;

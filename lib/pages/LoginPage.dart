@@ -23,7 +23,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
-    // Validate inputs
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = 'Veuillez remplir tous les champs';
@@ -52,7 +51,6 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       if (success) {
-        // Navigate to home screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -77,11 +75,9 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Image de fond
           Positioned.fill(
             child: Image.asset("assets/backgroundlogin.jpg", fit: BoxFit.cover),
           ),
-          // Logo en haut
           Positioned(
             top: 90,
             left: 0,
@@ -90,11 +86,10 @@ class _LoginPageState extends State<LoginPage> {
               alignment: Alignment.topCenter,
               child: Image.asset(
                 "assets/logo.jpeg",
-                height: 150, // Augmentation de la taille du logo
+                height: 150, 
               ),
             ),
           ),
-          // Formulaire de connexion
           Positioned(
             top: 320,
             left: 30,
@@ -109,7 +104,6 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 10),
-                  // Role selection
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -140,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  // Champ email
+
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -155,7 +149,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Champ mot de passe
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
@@ -170,7 +163,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  // Error message
                   if (_errorMessage.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 10),
@@ -180,13 +172,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   const SizedBox(height: 30),
-                  // Bouton de connexion avec une largeur réduite
                   SizedBox(
-                    width: 170, // Largeur réduite
+                    width: 170, 
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 12), // Hauteur inchangée
+                        padding: const EdgeInsets.symmetric(vertical: 12), 
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -208,7 +199,6 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // Lien "Mot de passe oublié ?"
                   Center(
                     child: TextButton(
                       onPressed: () {
