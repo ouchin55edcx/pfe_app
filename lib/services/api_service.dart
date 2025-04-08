@@ -308,4 +308,28 @@ class ApiService {
       throw Exception('Error fetching invited proprietaires: $e');
     }
   }
+
+  static Future<void> updateAttendance(String reunionId, String proprietaireId, String attendance) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/reunions/$reunionId/attendance/$proprietaireId'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode({
+          'attendance': attendance,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to update attendance');
+      }
+    } catch (e) {
+      throw Exception('Error updating attendance: $e');
+    }
+  }
 }
