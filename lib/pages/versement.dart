@@ -46,8 +46,6 @@ class VersementScreen extends StatefulWidget {
 }
 
 class _VersementScreenState extends State<VersementScreen> {
-  String selectedImm = "8";
-  String selectedAppt = "8";
   List<Charge> charges = [];
   bool isLoading = true;
   String errorMessage = '';
@@ -100,42 +98,47 @@ class _VersementScreenState extends State<VersementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("GESTION SYNDICAT"),
-        backgroundColor: Colors.blue.shade700,
+        title: Text(
+          "Charges",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: const Color.fromARGB(255, 64, 66, 69),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: selectedImm,
-                    items: ["8", "9", "10"].map((e) => DropdownMenuItem(value: e, child: Text("Immeuble $e"))).toList(),
-                    onChanged: (val) => setState(() => selectedImm = val!),
-                    decoration: InputDecoration(labelText: "Num_IMM", border: OutlineInputBorder()),
-                  ),
-                ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: selectedAppt,
-                    items: ["8", "9", "10"].map((e) => DropdownMenuItem(value: e, child: Text("Appt $e"))).toList(),
-                    onChanged: (val) => setState(() => selectedAppt = val!),
-                    decoration: InputDecoration(labelText: "Num_Appt", border: OutlineInputBorder()),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
             Expanded(
               child: isLoading
                   ? Center(child: CircularProgressIndicator())
                   : errorMessage.isNotEmpty
                       ? Center(child: Text(errorMessage))
                       : charges.isEmpty
-                          ? Center(child: Text("Aucune charge trouvée"))
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.receipt_long,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    "Aucune charge trouvée",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
                           : ListView.builder(
                               itemCount: charges.length,
                               itemBuilder: (context, index) {
@@ -143,34 +146,74 @@ class _VersementScreenState extends State<VersementScreen> {
                                 return Card(
                                   elevation: 3,
                                   margin: EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: ListTile(
+                                    contentPadding: EdgeInsets.all(16),
                                     title: Text(
                                       charge.titre,
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
                                     ),
                                     subtitle: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(charge.description),
+                                        SizedBox(height: 8),
                                         Text(
-                                          "Échéance: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(charge.dateEcheance))}",
-                                          style: TextStyle(color: Colors.grey[600]),
+                                          charge.description,
+                                          style: TextStyle(fontSize: 14),
                                         ),
-                                        Text(
-                                          "Montant: ${charge.montant} DH | Restant: ${charge.montantRestant} DH",
-                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              "Échéance: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(charge.dateEcheance))}",
+                                              style: TextStyle(color: Colors.grey[600]),
+                                            ),
+                                          ],
+                                        ),
+                                        SizedBox(height: 8),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Montant: ${charge.montant} DH",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.blue[700],
+                                              ),
+                                            ),
+                                            Text(
+                                              "Restant: ${charge.montantRestant} DH",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w500,
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
                                     trailing: Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: _getStatusColor(charge.statut),
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                       child: Text(
                                         charge.statut,
-                                        style: TextStyle(color: Colors.white),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -178,6 +221,7 @@ class _VersementScreenState extends State<VersementScreen> {
                               },
                             ),
             ),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -192,10 +236,17 @@ class _VersementScreenState extends State<VersementScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade700,
+                backgroundColor: const Color.fromARGB(255, 64, 66, 69),
                 foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: Text("Effectuer un versement"),
+              child: Text(
+                "Effectuer un versement",
+                style: TextStyle(fontSize: 16),
+              ),
             ),
           ],
         ),
