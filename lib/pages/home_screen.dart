@@ -4,6 +4,7 @@ import 'dashboard_page.dart';
 import 'schedule_meeting_page.dart';
 import 'OwnersListPage.dart';
 import 'settings_page.dart';
+import 'versement.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _pages = [
     DashboardPage(),
     OwnersListPage(),
+    VersementScreen(),
     ScheduleMeetingPage(),
     SettingsPage(),
   ];

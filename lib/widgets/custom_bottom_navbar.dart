@@ -5,10 +5,9 @@ class CustomBottomNavBar extends StatelessWidget {
   final Function(int) onTap;
 
   const CustomBottomNavBar({
-    Key? key,
     required this.currentIndex,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,8 +17,8 @@ class CustomBottomNavBar extends StatelessWidget {
       type: BottomNavigationBarType.fixed,
       backgroundColor: const Color.fromARGB(255, 64, 66, 69),
       selectedItemColor: Colors.white,
-      unselectedItemColor: Colors.grey[400],
-      items: const [
+      unselectedItemColor: Colors.grey,
+      items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.dashboard),
           label: 'Tableau de bord',
@@ -27,6 +26,10 @@ class CustomBottomNavBar extends StatelessWidget {
         BottomNavigationBarItem(
           icon: Icon(Icons.people),
           label: 'Propriétaires',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet),
+          label: 'Charges',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.calendar_today),

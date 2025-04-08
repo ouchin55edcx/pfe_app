@@ -332,4 +332,26 @@ class ApiService {
       throw Exception('Error updating attendance: $e');
     }
   }
+
+  static Future<void> createCharge(Map<String, dynamic> chargeData) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/charges'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode(chargeData),
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to create charge');
+      }
+    } catch (e) {
+      throw Exception('Error creating charge: $e');
+    }
+  }
 }
