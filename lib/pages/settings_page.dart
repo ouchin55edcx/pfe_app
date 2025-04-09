@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'UserProfilePage.dart';
 import 'LoginPage.dart';
+import '../services/auth_service.dart';
+
 class SettingsPage extends StatefulWidget {
   @override
   _SettingsPageState createState() => _SettingsPageState();
@@ -112,14 +115,24 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // Fonction de déconnexion
-  void _logout() {
-    // Ici, tu peux implémenter la logique pour déconnecter l'utilisateur (comme supprimer un token, etc.)
-    // Exemple : Navigator.pop(context); pour revenir à la page précédente
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginPage()), // Rediriger vers la page de connexion
-    );
+  // Updated logout function
+  Future<void> _logout() async {
+    try {
+      await AuthService.to.logout(); // Call the AuthService logout method
+      
+      // Navigate to login page and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => LoginPage()),
+        (Route<dynamic> route) => false,
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error during logout: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   // Titre de section

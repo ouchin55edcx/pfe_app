@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/proprietaire.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import './edit_proprietaire_profile_page.dart';
 
 class ProprietaireProfilePage extends StatefulWidget {
   @override
@@ -42,6 +43,31 @@ class _ProprietaireProfilePageState extends State<ProprietaireProfilePage> {
     }
   }
 
+  Future<void> _navigateToEditProfile() async {
+    if (_proprietaire == null) return;
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProprietaireProfilePage(
+          proprietaire: _proprietaire!,
+        ),
+      ),
+    );
+
+    if (result != null && result is Proprietaire) {
+      setState(() {
+        _proprietaire = result;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Profile updated successfully'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +77,13 @@ class _ProprietaireProfilePageState extends State<ProprietaireProfilePage> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromARGB(255, 64, 66, 69),
+        actions: [
+          if (_proprietaire != null)
+            IconButton(
+              icon: Icon(Icons.edit, color: Colors.white),
+              onPressed: _navigateToEditProfile,
+            ),
+        ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())

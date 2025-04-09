@@ -10,10 +10,9 @@ class ApiService {
 
   // Helper method to create headers with token
   static Map<String, String> _createAuthHeaders(String token) {
-    print('Creating headers with token: $token'); // Debug log
     return {
-      'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
     };
   }
 
@@ -418,7 +417,7 @@ class ApiService {
       print('Using token for profile request: $token'); // Debug log
 
       final response = await http.get(
-        Uri.parse('$baseUrl/proprietaires/profile'), // Updated endpoint
+        Uri.parse('$baseUrl/proprietaires/profile/update'), // Updated endpoint
         headers: _createAuthHeaders(token),
       );
 
@@ -436,6 +435,38 @@ class ApiService {
       throw Exception('Failed to fetch proprietaire profile: ${response.body}');
     } catch (e) {
       throw Exception('Error fetching proprietaire profile: $e');
+    }
+  }
+
+  static Future<Proprietaire> updateProprietaireProfile(Map<String, dynamic> updateData) async {
+    try {
+      final token = await StorageService.getToken();
+      final userRole = await StorageService.getUserRole();
+      
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      if (userRole != 'proprietaire') {
+        throw Exception('Only proprietaires can update their profile');
+      }
+
+      final response = await http.put( // Changed from POST to PUT
+        Uri.parse('$baseUrl/proprietaires/profile/update'),
+        headers: _createAuthHeaders(token),
+        body: jsonEncode(updateData),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return Proprietaire.fromJson(data['proprietaire']);
+        }
+        throw Exception(data['message'] ?? 'Failed to update profile');
+      }
+      throw Exception('Failed to update profile: ${response.body}');
+    } catch (e) {
+      throw Exception('Error updating profile: $e');
     }
   }
 }

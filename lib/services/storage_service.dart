@@ -9,24 +9,30 @@ class StorageService {
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(tokenKey, token);
+    print('Token saved: $token'); // Debug log
   }
 
   // Get token
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(tokenKey);
+    final token = prefs.getString(tokenKey);
+    print('Retrieved token: $token'); // Debug log
+    return token;
   }
 
   // Save user role
   static Future<void> saveUserRole(String role) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(userRoleKey, role);
+    print('User role saved: $role'); // Debug log
   }
 
   // Get user role
   static Future<String?> getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(userRoleKey);
+    final role = prefs.getString(userRoleKey);
+    print('Retrieved user role: $role'); // Debug log
+    return role;
   }
 
   // Save user data
@@ -43,7 +49,13 @@ class StorageService {
 
   // Clear all stored data (for logout)
   static Future<void> clearAll() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      print('All storage cleared successfully'); // Debug log
+    } catch (e) {
+      print('Error clearing storage: $e'); // Debug log
+      throw Exception('Failed to clear storage: $e');
+    }
   }
 }

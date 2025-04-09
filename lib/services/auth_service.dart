@@ -84,9 +84,8 @@ class AuthService extends GetxController {
 
       if (response['success'] == true) {
         final userData = response['user'];
-        final token = response['token'];
+        final token = response['token']; // This will be in format "id:proprietaire"
         
-        // Make sure we store the user ID
         _currentUser.value = ProprietaireUser.fromJson(userData);
         _token.value = token;
         _userRole.value = 'proprietaire';
@@ -96,7 +95,7 @@ class AuthService extends GetxController {
         await StorageService.saveUserRole('proprietaire');
         await StorageService.saveUserData(jsonEncode(userData));
 
-        print('Proprietaire logged in successfully with ID: ${_currentUser.value?.id}'); // Debug log
+        print('Proprietaire logged in successfully with token: $token'); // Debug log
         return true;
       }
       print('Login failed: ${response['message']}'); // Debug log
@@ -109,11 +108,18 @@ class AuthService extends GetxController {
 
   // Logout
   Future<void> logout() async {
-    _currentUser.value = null;
-    _token.value = '';
-    _userRole.value = '';
+    try {
+      _currentUser.value = null;
+      _token.value = '';
+      _userRole.value = '';
 
-    // Clear storage
-    await StorageService.clearAll();
+      // Clear all stored data
+      await StorageService.clearAll();
+      
+      print('User logged out successfully'); // Debug log
+    } catch (e) {
+      print('Error during logout: $e'); // Debug log
+      throw Exception('Failed to logout: $e');
+    }
   }
 }

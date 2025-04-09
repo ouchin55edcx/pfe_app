@@ -9,7 +9,7 @@ class Proprietaire {
   final String updatedAt;
   final String appartementId;
   final String apartmentNumber;
-  final String? buildingId;
+  final String buildingId;
   final String ownershipDate;
   final String createdBy;
 
@@ -24,7 +24,7 @@ class Proprietaire {
     required this.updatedAt,
     required this.appartementId,
     required this.apartmentNumber,
-    this.buildingId,
+    required this.buildingId,
     required this.ownershipDate,
     required this.createdBy,
   });
