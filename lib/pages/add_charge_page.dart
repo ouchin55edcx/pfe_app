@@ -13,24 +13,52 @@ class _AddChargePageState extends State<AddChargePage> {
   final _descriptionController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _dueDate;
-  String _selectedCategory = 'Maintenance';
+  String _selectedCategory = 'maintenance';
+  String? _selectedApartmentId;
   bool _isLoading = false;
+  List<Map<String, dynamic>> _apartments = [];
 
   final List<String> _categories = [
-    'Maintenance',
-    'Nettoyage',
-    'Sécurité',
-    'Électricité',
-    'Eau',
-    'Autre'
+    'maintenance',
+    'nettoyage',
+    'securite',
+    'electricite',
+    'eau',
+    'autre'
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadApartments();
+  }
+
+  Future<void> _loadApartments() async {
+    try {
+      setState(() => _isLoading = true);
+      final apartments = await ApiService.getAvailableApartments();
+      setState(() {
+        _apartments = apartments;
+        _isLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
+      setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
+    final DateTime now = DateTime.now();
+    final DateTime firstDate = now;
+    final DateTime lastDate = DateTime(now.year + 5, now.month, now.day);
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _dueDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2025),
+      initialDate: _dueDate ?? now,
+      firstDate: firstDate,
+      lastDate: lastDate,
     );
     if (picked != null && picked != _dueDate) {
       setState(() {
@@ -40,10 +68,9 @@ class _AddChargePageState extends State<AddChargePage> {
   }
 
   Future<void> _saveCharge() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (_dueDate == null) {
+    if (!_formKey.currentState!.validate() || _dueDate == null || _selectedApartmentId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez sélectionner une date d\'échéance')),
+        SnackBar(content: Text('Please fill all required fields')),
       );
       return;
     }
@@ -56,15 +83,17 @@ class _AddChargePageState extends State<AddChargePage> {
         'description': _descriptionController.text,
         'montant': double.parse(_amountController.text),
         'dateEcheance': DateFormat('yyyy-MM-dd').format(_dueDate!),
+        'appartementId': _selectedApartmentId,
         'categorie': _selectedCategory,
-        'statut': 'En attente',
       };
 
-      await ApiService.createCharge(chargeData);
-      Navigator.pop(context, true);
+      final response = await ApiService.createCharge(chargeData);
+      if (response['success'] == true) {
+        Navigator.pop(context, true);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la création de la charge')),
+        SnackBar(content: Text(e.toString())),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -76,7 +105,7 @@ class _AddChargePageState extends State<AddChargePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Nouvelle Charge',
+          'Create New Charge',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromARGB(255, 64, 66, 69),
@@ -93,11 +122,11 @@ class _AddChargePageState extends State<AddChargePage> {
                     TextFormField(
                       controller: _titleController,
                       decoration: InputDecoration(
-                        labelText: 'Titre',
+                        labelText: 'Title',
                         border: OutlineInputBorder(),
                       ),
                       validator: (value) =>
-                          value?.isEmpty == true ? 'Champ requis' : null,
+                          value?.isEmpty == true ? 'Required field' : null,
                     ),
                     SizedBox(height: 16),
                     TextFormField(
@@ -112,22 +141,43 @@ class _AddChargePageState extends State<AddChargePage> {
                     TextFormField(
                       controller: _amountController,
                       decoration: InputDecoration(
-                        labelText: 'Montant (DH)',
+                        labelText: 'Amount (DH)',
                         border: OutlineInputBorder(),
                       ),
                       keyboardType: TextInputType.number,
                       validator: (value) {
-                        if (value?.isEmpty == true) return 'Champ requis';
+                        if (value?.isEmpty == true) return 'Required field';
                         if (double.tryParse(value!) == null)
-                          return 'Montant invalide';
+                          return 'Invalid amount';
                         return null;
                       },
                     ),
                     SizedBox(height: 16),
                     DropdownButtonFormField<String>(
+                      value: _selectedApartmentId,
+                      decoration: InputDecoration(
+                        labelText: 'Select Apartment',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: _apartments.map((apartment) {
+                        return DropdownMenuItem<String>(
+                          value: apartment['id'].toString(),
+                          child: Text('Apartment ${apartment['numero']}'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedApartmentId = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Please select an apartment' : null,
+                    ),
+                    SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
                       value: _selectedCategory,
                       decoration: InputDecoration(
-                        labelText: 'Catégorie',
+                        labelText: 'Category',
                         border: OutlineInputBorder(),
                       ),
                       items: _categories
@@ -147,7 +197,7 @@ class _AddChargePageState extends State<AddChargePage> {
                       onTap: () => _selectDate(context),
                       child: InputDecorator(
                         decoration: InputDecoration(
-                          labelText: 'Date d\'échéance',
+                          labelText: 'Due Date',
                           border: OutlineInputBorder(),
                         ),
                         child: Row(
@@ -155,7 +205,7 @@ class _AddChargePageState extends State<AddChargePage> {
                           children: [
                             Text(
                               _dueDate == null
-                                  ? 'Sélectionner une date'
+                                  ? 'Select a date'
                                   : DateFormat('dd/MM/yyyy').format(_dueDate!),
                             ),
                             Icon(Icons.calendar_today),
@@ -167,11 +217,11 @@ class _AddChargePageState extends State<AddChargePage> {
                     ElevatedButton(
                       onPressed: _saveCharge,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 75, 160, 173),
+                        backgroundColor: const Color.fromARGB(255, 64, 66, 69),
                         padding: EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: Text(
-                        'Enregistrer',
+                        'Save',
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),

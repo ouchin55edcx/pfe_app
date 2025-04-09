@@ -148,11 +148,9 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          final apartments = (data['appartements'] as List)
-              .where((apt) => apt['proprietaireId'] == null)
+          return (data['appartements'] as List)
               .map((apt) => Map<String, dynamic>.from(apt))
               .toList();
-          return apartments;
         }
       }
       throw Exception('Failed to fetch apartments');
@@ -357,7 +355,7 @@ class ApiService {
     }
   }
 
-  static Future<void> createCharge(Map<String, dynamic> chargeData) async {
+  static Future<Map<String, dynamic>> createCharge(Map<String, dynamic> chargeData) async {
     try {
       final token = await StorageService.getToken();
       if (token == null) {
@@ -370,10 +368,13 @@ class ApiService {
         body: jsonEncode(chargeData),
       );
 
+      final data = jsonDecode(response.body);
+      
       if (response.statusCode != 201 && response.statusCode != 200) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Failed to create charge');
+        throw Exception(data['message'] ?? 'Failed to create charge');
       }
+
+      return data;
     } catch (e) {
       throw Exception('Error creating charge: $e');
     }

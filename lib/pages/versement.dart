@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
+import 'add_charge_page.dart';
 
 class Charge {
   final String id;
@@ -223,17 +224,16 @@ class _VersementScreenState extends State<VersementScreen> {
             ),
             SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AjouterVersementScreen(
-                      onAjout: (versement) {
-                        setState(() {});
-                      },
-                    ),
+                    builder: (context) => AddChargePage(),
                   ),
                 );
+                if (result == true) {
+                  _fetchCharges(); // Refresh the charges list
+                }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 64, 66, 69),
@@ -244,7 +244,7 @@ class _VersementScreenState extends State<VersementScreen> {
                 ),
               ),
               child: Text(
-                "Effectuer un versement",
+                "Create New Charge",
                 style: TextStyle(fontSize: 16),
               ),
             ),
