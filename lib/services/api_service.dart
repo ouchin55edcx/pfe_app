@@ -379,4 +379,25 @@ class ApiService {
       throw Exception('Error creating charge: $e');
     }
   }
+
+  static Future<void> confirmPayment(String paymentId) async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/payments/$paymentId/confirm'),
+        headers: _createAuthHeaders(token),
+      );
+
+      if (response.statusCode != 200) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to confirm payment');
+      }
+    } catch (e) {
+      throw Exception('Error confirming payment: $e');
+    }
+  }
 }
