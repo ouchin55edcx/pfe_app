@@ -84,20 +84,25 @@ class AuthService extends GetxController {
 
       if (response['success'] == true) {
         final userData = response['user'];
+        final token = response['token'];
+        
+        // Make sure we store the user ID
         _currentUser.value = ProprietaireUser.fromJson(userData);
-        _token.value = response['token'];
+        _token.value = token;
         _userRole.value = 'proprietaire';
 
         // Save to storage
-        await StorageService.saveToken(response['token']);
+        await StorageService.saveToken(token);
         await StorageService.saveUserRole('proprietaire');
         await StorageService.saveUserData(jsonEncode(userData));
 
+        print('Proprietaire logged in successfully with ID: ${_currentUser.value?.id}'); // Debug log
         return true;
       }
+      print('Login failed: ${response['message']}'); // Debug log
       return false;
     } catch (e) {
-      print('Login error: $e');
+      print('Login error: $e'); // Debug log
       return false;
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'home_screen.dart';
 import '../services/auth_service.dart';
+import 'proprietaire_profile_page.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -22,14 +23,7 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
-      setState(() {
-        _errorMessage = 'Veuillez remplir tous les champs';
-      });
-      return;
-    }
-
+  Future<void> _handleLogin() async {
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -43,19 +37,26 @@ class _LoginPageState extends State<LoginPage> {
           _emailController.text,
           _passwordController.text,
         );
+        if (success) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()),
+          );
+        }
       } else {
         success = await AuthService.to.loginAsProprietaire(
           _emailController.text,
           _passwordController.text,
         );
+        if (success) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => ProprietaireProfilePage()),
+          );
+        }
       }
 
-      if (success) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
-      } else {
+      if (!success) {
         setState(() {
           _errorMessage = 'Échec de la connexion. Vérifiez vos identifiants.';
         });
@@ -182,7 +183,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: _isLoading ? null : _login,
+                      onPressed: _isLoading ? null : _handleLogin,
                       child: _isLoading
                           ? const SizedBox(
                               height: 20,

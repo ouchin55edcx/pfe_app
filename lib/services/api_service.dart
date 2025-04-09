@@ -10,6 +10,7 @@ class ApiService {
 
   // Helper method to create headers with token
   static Map<String, String> _createAuthHeaders(String token) {
+    print('Creating headers with token: $token'); // Debug log
     return {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -65,24 +66,30 @@ class ApiService {
 
   // Login as Proprietaire
   static Future<Map<String, dynamic>> loginAsProprietaire(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/auth/proprietaire/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'email': email,
-        'password': password,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/proprietaire/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
 
-    if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      // Store the token immediately after successful login
-      if (data['success'] == true && data['token'] != null) {
-        await StorageService.saveToken(data['token']);
+      
+      if (response.statusCode == 200 && data['success'] == true) {
+        // Make sure to store the proprietaire token
+        if (data['token'] != null) {
+          print('Saving proprietaire token: ${data['token']}'); // Debug log
+          await StorageService.saveToken(data['token']);
+        }
+        return data;
+      } else {
+        throw Exception('Failed to login: ${response.body}');
       }
-      return data;
-    } else {
-      throw Exception('Failed to login: ${response.body}');
+    } catch (e) {
+      throw Exception('Failed to login: $e');
     }
   }
 
@@ -398,6 +405,37 @@ class ApiService {
       }
     } catch (e) {
       throw Exception('Error confirming payment: $e');
+    }
+  }
+
+  static Future<Proprietaire> getProprietaireProfile() async {
+    try {
+      final token = await StorageService.getToken();
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      print('Using token for profile request: $token'); // Debug log
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/proprietaires/profile'), // Updated endpoint
+        headers: _createAuthHeaders(token),
+      );
+
+      print('Profile response status: ${response.statusCode}'); // Debug log
+      print('Profile response body: ${response.body}'); // Debug log
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          // The proprietaire data is now directly under the 'proprietaire' key
+          return Proprietaire.fromJson(data['proprietaire']);
+        }
+        throw Exception(data['message'] ?? 'Failed to fetch proprietaire profile');
+      }
+      throw Exception('Failed to fetch proprietaire profile: ${response.body}');
+    } catch (e) {
+      throw Exception('Error fetching proprietaire profile: $e');
     }
   }
 }

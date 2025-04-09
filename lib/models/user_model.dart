@@ -68,26 +68,35 @@ class SyndicUser extends User {
 
 class ProprietaireUser extends User {
   ProprietaireUser({
-    required super.id,
-    required super.email,
-    required super.firstName,
-    required super.lastName,
-    required super.phoneNumber,
-    required super.role,
-    required super.createdAt,
-    required super.updatedAt,
-  });
+    required String id,
+    required String email,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
+    required String role,
+    required String createdAt,
+    required String updatedAt,
+  }) : super(
+          id: id,
+          email: email,
+          firstName: firstName,
+          lastName: lastName,
+          phoneNumber: phoneNumber,
+          role: role,
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+        );
 
   factory ProprietaireUser.fromJson(Map<String, dynamic> json) {
     return ProprietaireUser(
-      id: json['id'],
-      email: json['email'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
-      phoneNumber: json['phoneNumber'],
-      role: json['role'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      id: json['id'] ?? '',
+      email: json['email'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      role: json['role'] ?? 'proprietaire',
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
     );
   }
 }
